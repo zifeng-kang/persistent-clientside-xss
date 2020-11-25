@@ -158,19 +158,29 @@ def find_match(items, tainted_value):
     else:
         tainted_value_dic = None
     for key, storage_value, storage_type in items:
+        
         if not storage_value:
             continue
-        if tainted_value in storage_value:
-            if storage_value.lower()[:3] in ("%7b", "%5b"):
-                matches.append([key, tainted_value, storage_value, False, "quoted"])
-            else:
-                matches.append([key, tainted_value, storage_value, False, "plain"])
+        try:
+            if tainted_value in storage_value:
+                if storage_value.lower()[:3] in ("%7b", "%5b"):
+                    matches.append([key, tainted_value, storage_value, False, "quoted"])
+                else:
+                    matches.append([key, tainted_value, storage_value, False, "plain"])
+                continue
+        except UnicodeDecodeError:
             continue
-        if unquote(tainted_value) in unquote(storage_value):
-            matches.append([key, unquote(tainted_value), unquote(storage_value), False, "quoted"])
+            
+        try:
+            if unquote(tainted_value) in unquote(storage_value):
+                matches.append([key, unquote(tainted_value), unquote(storage_value), False, "quoted"])
+                continue
+        except UnicodeDecodeError:
             continue
+            
         if not tainted_value_dic:
             continue
+        
         try:
             if is_json(storage_value):
                 storage_value_dic = try_parse_json(storage_value)

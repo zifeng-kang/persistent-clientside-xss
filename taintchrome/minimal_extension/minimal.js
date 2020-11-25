@@ -61,14 +61,14 @@ window.getSourceInfo = function (source, value, start, end) {
     }
 
     return {
-        "sourceId": realSource,
-        "sourceName": sourcename,
+        "source": realSource,
+        "source_name": sourcename,
         "start": start,
         "end": end,
         "hasEscaping": hasEscaping,
-        "hasEncodeURI": hasEncodeURI,
-        "hasEncodeURIComponent": hasEncodeURIComponent,
-        "sourcePart": sourcePart,
+        "hasEncodingURI": hasEncodeURI,
+        "hasEncodingURIComponent": hasEncodeURIComponent,
+        "value_part": sourcePart,
         "isSameFrame": isSameFrame
     };
 };
@@ -115,17 +115,17 @@ window.___DOMXSSFinderReport = function (sinkId, value, sources, details, loc) {
     var detail2 = details[1];
     var detail3=loc;
     var finding = {
-        location: window.location.href,
+        url: window.location.href,
         domain: document.domain,
-        taintedValue: value, // String - value of the (parially) tainted string
-        sources: sources, // Array  - byte-wise identification of the sources that composed the string
-        sinkType: sinkId, // ID - eval, innnerHTML, document.write, ...
-        sinkDetails: {
-            d1: detail1,
-            d2: detail2,
-            d3: detail3
-        }, // String - Context infos how the source was called, value depends on sinkType
-        stringID: 0
+        'value': value, // String - value of the (parially) tainted string
+        'sources': sources, //sources, // Array  - byte-wise identification of the sources that composed the string
+        sink_id: sinkId, // ID - eval, innnerHTML, document.write, ...
+        // sinkDetails: {
+            d1: detail1 || '',
+            d2: detail2 || '',
+            d3: detail3 || '',
+        //}, // String - Context infos how the source was called, value depends on sinkType
+        finding_id: 0
     };
     sinkTypeToName = {
         '1': 'eval',
@@ -134,30 +134,58 @@ window.___DOMXSSFinderReport = function (sinkId, value, sources, details, loc) {
         '5': 'script.text',
         '8': 'script.src',
     };
-
-    console.log("%cTainted flow to sink " + sinkTypeToName[sinkId] + " found!", "font-weight: bold");
-    console.log("Value: " + value);
-    console.log("Code location: " + detail3);
-    var buffer = "";
+    // var buffer = "";
     var args = Array();
     var s = repackSources(value, sources);
     for (var e in s) {
-        var css = "color: black";
-        if (s[e].sourceId !== 0 && s[e].sourceId !== 255) {
-            css = "color: red";
+        // var css = "color: black";
+        // if (s[e].sourceId !== 0 && s[e].sourceId !== 255) {
+        //     css = "color: red";
+        // }
+        // buffer += "%c%s";
+        // args.push(css);
+        // var text = s[e].sourcePart;
+        // if (text.indexOf("http") > -1) {
+        //     text = text.replace("://", ":__");
+        //     text = text.replace(".", "_")
+        // }
+        // args.push(text)
+        if (s[e].source !== 0 && s[e].source !== 255) {
+            args.push(s[e]);
         }
-        buffer += "%c%s";
-        args.push(css);
-        var text = s[e].sourcePart;
-        if (text.indexOf("http") > -1) {
-            text = text.replace("://", ":__");
-            text = text.replace(".", "_")
-        }
-        args.push(text)
     }
 
-    args.unshift(buffer);
-    console.log.apply(console, args);
+    if (sinkTypeToName[sinkId] !== null && sinkTypeToName[sinkId] !== undefined && args.length > 0) {
+    console.log("%cTainted flow to sink " + sinkTypeToName[sinkId] + " found!", "font-weight: bold");
+    // console.log("Value: " + value);
+    // console.log("Code location: " + detail3);
+    
+    finding['sources'] = args;
+
+    // add cookie type -1, localstorage type 1, sessionstorage type 0
+    var cookie_archive = Array(), all_cookies = document.cookie.split('; '), cookie_i = all_cookies.length;
+    while ( cookie_i-- ) {
+        var component = all_cookies[cookie_i].split('=');
+        component.push(-1);
+        cookie_archive.push(component);
+    }
+    var local_archive = Array(), local_i = localStorage.length;
+    while ( local_i-- ) {
+        var local_component = Array(localStorage.key(local_i), localStorage.getItem( localStorage.key(local_i) ), 1);
+        local_archive.push(local_component);
+    }
+    var session_archive = Array(), session_i = sessionStorage.length;
+    while ( session_i-- ) {
+        var session_component = Array(sessionStorage.key(session_i), sessionStorage.getItem( sessionStorage.key(session_i) ), 0);
+        session_archive.push(session_component);
+    }
+
+    finding['storage'] = {"cookies": cookie_archive, "storage": local_archive.concat(session_archive)};
+    console.log("TAINTFINDING" + JSON.stringify(finding));
+
+    // args.unshift(buffer);
+    // console.log.apply(console, args);
+    }
 };
 
 

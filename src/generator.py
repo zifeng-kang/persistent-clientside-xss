@@ -37,24 +37,27 @@ def generateExploit(finding):
     :param finding: the finding which should be used to generate
     :return: list of exploit candidates
     """
-    # If we have no associated sources we cannot generate anything
-    if len(finding["sources"]) == 0:
-        log("There were no sources present within the corresponding finding, thus we cannot generate exploits!")
-        return []
-    # direct flow into script src
-    if finding["sink_id"] == SINKS.SINK_SCRIPT_SRC:
-        return get_script_src_exploit(finding)
-    # direct flow into string to JS code conversion sinks
-    elif finding["sink_id"] in JS_SINKS:
-        return get_js_exploit(finding)
-    # indirect flow into javascript execution via HTML
-    elif finding["sink_id"] == SINKS.SINK_INNER_HTML and finding["d2"] == 'script':
-        return get_js_exploit(finding)
-    # direct flow into HTML
-    elif finding["sink_id"] in HTML_SINKS:
-        return get_html_exploit(finding)
-    else:
-        log('It is currently not supported to build exploits for sink number {}!'.format(finding["sink_id"]))
+    try:
+        # If we have no associated sources we cannot generate anything
+        if len(finding["sources"]) == 0:
+            log("There were no sources present within the corresponding finding, thus we cannot generate exploits!")
+            return []
+        # direct flow into script src
+        if finding["sink_id"] == SINKS.SINK_SCRIPT_SRC:
+            return get_script_src_exploit(finding)
+        # direct flow into string to JS code conversion sinks
+        elif finding["sink_id"] in JS_SINKS:
+            return get_js_exploit(finding)
+        # indirect flow into javascript execution via HTML
+        elif finding["sink_id"] == SINKS.SINK_INNER_HTML and finding["d2"] == 'script':
+            return get_js_exploit(finding)
+        # direct flow into HTML
+        elif finding["sink_id"] in HTML_SINKS:
+            return get_html_exploit(finding)
+        else:
+            log('It is currently not supported to build exploits for sink number {}!'.format(finding["sink_id"]))
+            return []
+    except Exception as e:
         return []
 
 
