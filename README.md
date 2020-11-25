@@ -68,3 +68,17 @@ When we observe a flow into the src property of a script which happens before th
 
 # License
 This project is licensed under the terms of the AGPL3 license which you can find in ```LICENSE```.
+
+# Modifications by Zifeng Kang
+## Append value to logs
+Append a 'TAINTFINDING' string to the extension outputs so that they can be easily distinguished from other chrome outputs. 
+
+## Add auto scraping scripts
+In taintchrome/chrome/scrape-auto.sh, bash scripts do web crawling and website scanning automatically. They will also record the outputs by chrome into log_files, and each distinguished domain will be recorded in a distinguished log_file. 
+
+The crawling scripts don't support crawling sub-pages, though. This is in the TODO-list of this project. 
+
+## Auto-processing outputs in test.py
+In test.py, the python codes can read and distinguish the desired information. Afterwards, the program tries to generate an exploit according to such info. 
+
+Note: However, for simplicity if there are errors e.g. UnicodeDecodeError, the log_file will be skipped. More precise error-handling is in the TODO-list. 
