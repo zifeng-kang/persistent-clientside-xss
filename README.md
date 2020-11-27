@@ -76,7 +76,34 @@ Append a 'TAINTFINDING' string to the extension outputs so that they can be easi
 ## Add auto scraping scripts
 In taintchrome/chrome/scrape-auto.sh, bash scripts do web crawling and website scanning automatically. They will also record the outputs by chrome into log_files, and each distinguished domain will be recorded in a distinguished log_file. 
 
-The crawling scripts don't support crawling sub-pages, though. This is in the TODO-list of this project. 
+Usage: 
+
+```
+cd taintchrome/chrome
+./scrape-auto.sh <# of start line - 1> <# of end line> <flushing parameter> <max_num_window>
+```
+
+The sh script takes 4 parameters. It reads from a csv recording all of the websites to be crawled. Choose # of the start line and end line of what you want to crawl.
+
+The third parameter controls whether or not to flush the logs. If you don't want flushing, just type 2 there. 
+
+The fourth parameter is how many windows you want the chrome to open simultaneously in a single iteration. In one iteration, the script opens as many as <max_num_window> windows, sleeps for a while to wait all windows loading, and then closes these windows to start a new interation (opening new bunch of windows). You may adjust the source code for your own needs. 
+
+The following example means the script will crawl all of the websites from line 1 to line 1000, no flushing, and open 30 windows simultaneously in a single iteration: 
+
+```
+cd taintchrome/chrome
+./scrape-auto.sh 0 1000 2 30
+```
+
+If you just want to crawl one particular website, you can put it into one csv file, change the file name in the last line of the scrape-auto.sh to your file name, and run: 
+
+```
+cd taintchrome/chrome
+./scrape-auto.sh 0 1 2 1
+```
+
+The crawling scripts don't support crawling sub-pages, though. (Perhaps done by adding a self-made chrome extension. ) This is in the TODO-list of this project. 
 
 ## Auto-processing outputs in test.py
 In test.py, the python codes can read and distinguish the desired information. Afterwards, the program tries to generate an exploit according to such info. 
