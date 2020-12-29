@@ -11,7 +11,7 @@ then
         rm -rf logs && mkdir logs
         TAG=""
 else
-        TAG="p_"
+        TAG="recursive_"
         if ((if_flush == 0))
         then
                 # rm -rf ../${TAG}crawl && mkdir ../${TAG}crawl
@@ -43,9 +43,10 @@ do
                     echo "Waiting to clean $idx and prev $max_num_window windows ... "
                     # timeout 30 out/Bytecode/chrome $url --js-flags="--taint_log_file=/media/data1/zfk/Documents/sanchecker/${TAG}crawl/$NAME --no-crankshaft --no-turbo --no-ignition" \
                     #  --user-data-dir=/tmp/${NAME} --new-window --no-sandbox --disable-hang-monitor -incognito -enable-nacl &>${TAG}logs/${NAME}_log_file && pkill chrome
-                    sleep 30s
+                    sleep 200s
                     pkill chrome
-                    sleep 2s
+                    pkill chrome
+		    sleep 2s
                     echo "$idx and prev $max_num_window windows cleaned! "
             #else
 

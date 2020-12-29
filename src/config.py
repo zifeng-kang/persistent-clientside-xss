@@ -24,7 +24,7 @@ parser = argparse.ArgumentParser(description="""Automatic Exploit Generator resu
     """)
 
 parser.add_argument("--debug", action="store_true")
-parser.add_argument("--payload", default='alert(document.domain)')
+parser.add_argument("--payload", default='alert(9780)')
 
 CONFIG = parser.parse_args()
 

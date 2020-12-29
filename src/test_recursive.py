@@ -22,14 +22,10 @@ from examples.EXAMPLE3 import EXAMPLE3
 from examples.EXAMPLE4 import EXAMPLE4
 from examples.EXAMPLE5 import EXAMPLE5
 from examples.EXAMPLE6 import EXAMPLE6
-from setstorage import double_check
-from urllib import unquote
-from random import sample, shuffle
 from pprint import pprint
 
 sep = '---------------------'
 marker = "TAINTFINDING"
-# exploit_marker = "EXPLOITFINDING"
 
 def process_log(path):
     finding_list = []
@@ -46,7 +42,7 @@ def process_log(path):
     return finding_list
 
 def main():
-    log = 3-1
+    log = -1
     stem = "/media/data1/zfk/Documents/persistent-clientside-xss/"
     path = os.path.join(stem, "taintchrome/chrome/log_file")
     # Example 1 is annotated with the structure of a `finding` and `source`
@@ -64,20 +60,17 @@ def main():
             print generate_exploit_for_finding(exmpl)
         return
     elif log == -1: # get statistics
-        file_num = 100
         root = os.path.join(stem, 'taintchrome/chrome/recursive_logs')
         finding_id = 0; id = 0 ; file_counter = 0; counts = {}
-        file_list = os.listdir(root)
-        shuffle(file_list)
-        for each_file in file_list: #sample(os.listdir(root), file_num):
-            # file_counter += 1
-            if os.path.isfile(os.path.join(root, each_file)) and 'log_file' in each_file and file_counter<=file_num:
-                #print file_counter, each_file
+        for each_file in os.listdir(root):
+            file_counter += 1
+            if os.path.isfile(os.path.join(root, each_file)) and 'log_file' in each_file: # and file_counter<=1000:
+                print file_counter, each_file
                 each_path = os.path.join(root, each_file)
                 example_list = process_log(each_path)
                 for example_id, exmpl in enumerate(example_list):
                     finding_id += 1
-                    print each_file, exmpl['url'], example_id
+                    print example_id
                     exmpl['finding_id'] = finding_id
                     if exmpl['sink_id'] not in counts.keys():
                         counts[exmpl['sink_id']] = {}
@@ -85,6 +78,7 @@ def main():
                     for found_source in exmpl['sources']:
                         if not type(found_source) is dict or 'hasEncodingURI' not in found_source.keys():
                             continue
+                        # Removed the following two lines to fix bug
                         # found_source['hasEncodingURI'] = found_source.pop('hasEncodeURI')
                         # found_source['hasEncodingURIComponent'] = found_source.pop('hasEncodeURIComponent')
                         id += 1
@@ -102,8 +96,6 @@ def main():
                         if len(found_cookie) > 3:
                             exmpl['storage']['cookies'][i] = [found_cookie[0], '='.join(found_cookie[1:-1]),-1]
                     exploits = generate_exploit_for_finding(exmpl)
-                    if len(exploits):
-                        file_counter += 1
                     
                     # create distinct list for 'finding_source_id' attribute
                     source_id_list = []; new_exploits_list = []
@@ -117,21 +109,11 @@ def main():
                         source_type = exploit.get('storage_type', '')
                         if source_type == '':
                             continue
-                        key = exploit.get('storage_key', '')
-                        # value = exploit.get('replace_with', '').replace('%28', '(').replace('%29', ')') # ensure () no-encoded
-                        value = unquote(exploit.get('replace_with', '')) # unescape the value string
-                        print exmpl['url'], source_type, key, value
-                        check_result = double_check(exmpl['url'], source_type, key, value)
-
-                        if check_result == 'NotLoaded' or check_result == 'UnsupportedType':
-                            counts[exmpl['sink_id']][source_type]['unexploitable'] -= 1
-                        elif check_result == 'SuccessfulExploit':
-                            counts[exmpl['sink_id']][source_type]['unexploitable'] -= 1
-                            if 'exploitable' not in counts[exmpl['sink_id']][source_type].keys():
-                                counts[exmpl['sink_id']][source_type]['exploitable'] = 1
-                            else:
-                                counts[exmpl['sink_id']][source_type]['exploitable'] += 1
-                        print check_result, each_file, exmpl['url'], exploit
+                        counts[exmpl['sink_id']][source_type]['unexploitable'] -= 1
+                        if 'exploitable' not in counts[exmpl['sink_id']][source_type].keys():
+                            counts[exmpl['sink_id']][source_type]['exploitable'] = 1
+                        else:
+                            counts[exmpl['sink_id']][source_type]['exploitable'] += 1
         pprint(counts)
         print 'finding_id ', finding_id, 'id ', id
         return

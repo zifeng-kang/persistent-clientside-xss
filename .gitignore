@@ -259,6 +259,7 @@ taintchrome/chrome/p_logs/
 taintchrome/chrome/log_file
 
 taintchrome/chrome/
+src/*.txt
 
 # vscode
 *.vscode/
